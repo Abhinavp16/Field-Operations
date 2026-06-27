@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_state.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_header.dart';
 import '../../shared/widgets/data_row_tile.dart';
@@ -91,22 +92,23 @@ class _DashboardHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = FieldOpsStateScope.of(context);
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        const _AlertBanner(),
+        _AlertBanner(alertCount: state.alertCount),
         const SizedBox(height: 14),
-        const Row(
+        Row(
           children: [
             Expanded(
               child: _MetricCard(
                 label: 'Active ops',
-                value: '12',
+                value: state.operationActive ? '12' : '11',
                 icon: Icons.bolt_outlined,
               ),
             ),
-            SizedBox(width: 10),
-            Expanded(
+            const SizedBox(width: 10),
+            const Expanded(
               child: _MetricCard(
                 label: 'Personnel',
                 value: '86',
@@ -116,18 +118,18 @@ class _DashboardHome extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        const Row(
+        Row(
           children: [
             Expanded(
               child: _MetricCard(
                 label: 'Alerts',
-                value: '2',
+                value: '${state.alertCount}',
                 icon: Icons.warning_amber_rounded,
                 color: AppColors.error,
               ),
             ),
-            SizedBox(width: 10),
-            Expanded(
+            const SizedBox(width: 10),
+            const Expanded(
               child: _MetricCard(
                 label: 'Network',
                 value: '98%',
@@ -179,11 +181,24 @@ class _DashboardHome extends StatelessWidget {
                 icon: Icons.group_outlined,
                 valueColor: AppColors.primary,
               ),
-              const DataRowTile(
+              DataRowTile(
                 label: 'Pending sync',
-                value: '4 records',
+                value: '${state.offlineQueue} records',
                 icon: Icons.sync_outlined,
                 valueColor: AppColors.secondary,
+              ),
+              DataRowTile(
+                label: 'Operation status',
+                value: state.operationStatus,
+                icon: Icons.radio_button_checked,
+                valueColor: state.operationActive
+                    ? AppColors.primary
+                    : AppColors.mutedText,
+              ),
+              DataRowTile(
+                label: 'Draft operations',
+                value: '${state.operationDrafts}',
+                icon: Icons.drafts_outlined,
               ),
               const DataRowTile(
                 label: 'Coverage blackspots',
@@ -209,26 +224,15 @@ class _DashboardHome extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               const SizedBox(height: 12),
-              const _ActivityRow(
-                time: '09:24',
-                title: 'Checkpoint CP-02 updated',
-                status: 'Completed',
-              ),
-              const _ActivityRow(
-                time: '09:11',
-                title: 'Incident report submitted',
-                status: 'Review',
-              ),
-              const _ActivityRow(
-                time: '08:52',
-                title: 'Team Bravo joined operation',
-                status: 'Active',
-              ),
-              const _ActivityRow(
-                time: '08:31',
-                title: 'Offline map pack verified',
-                status: 'Ready',
-              ),
+              ...state.activities
+                  .take(5)
+                  .map(
+                    (activity) => _ActivityRow(
+                      time: activity.time,
+                      title: activity.title,
+                      status: activity.status,
+                    ),
+                  ),
             ],
           ),
         ),
@@ -324,7 +328,9 @@ class _MoreScreen extends StatelessWidget {
 }
 
 class _AlertBanner extends StatelessWidget {
-  const _AlertBanner();
+  const _AlertBanner({required this.alertCount});
+
+  final int alertCount;
 
   @override
   Widget build(BuildContext context) {
@@ -358,7 +364,7 @@ class _AlertBanner extends StatelessWidget {
               ],
             ),
           ),
-          const StatusChip(label: '2 alerts', color: AppColors.error),
+          StatusChip(label: '$alertCount alerts', color: AppColors.error),
         ],
       ),
     );

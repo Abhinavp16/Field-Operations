@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_state.dart';
 import '../../shared/widgets/field_panel.dart';
 import '../../shared/widgets/field_scaffold.dart';
 import '../../shared/widgets/mock_map.dart';
@@ -11,11 +12,7 @@ class CheckpointsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final checkpoints = [
-      ('CP-01 Alpha', 'Completed', AppColors.primary),
-      ('CP-02 Bravo', 'Active', AppColors.secondary),
-      ('CP-03 Charlie', 'Pending', AppColors.mutedText),
-    ];
+    final state = FieldOpsStateScope.of(context);
     return FieldScaffold(
       title: 'Checkpoints',
       subtitle: 'Bridge Safety Sweep',
@@ -24,18 +21,43 @@ class CheckpointsScreen extends StatelessWidget {
         children: [
           const MockMap(height: 210, mode: 'Route'),
           const SizedBox(height: 14),
-          ...checkpoints.map(
+          FieldPanel(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${state.completedCheckpoints} / ${state.checkpoints.length} checkpoints complete',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: () {
+                    state.completeActiveCheckpoint();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Active checkpoint updated'),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: const Text('Update'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          ...state.checkpoints.map(
             (cp) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: FieldPanel(
-                borderColor: cp.$2 == 'Active' ? AppColors.primary : null,
+                borderColor: cp.status == 'Active' ? AppColors.primary : null,
                 child: Row(
                   children: [
                     Icon(
-                      cp.$2 == 'Completed'
+                      cp.status == 'Completed'
                           ? Icons.check_circle_outline
                           : Icons.radio_button_checked,
-                      color: cp.$3,
+                      color: _statusColor(cp.status),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -43,7 +65,7 @@ class CheckpointsScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            cp.$1,
+                            cp.name,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
@@ -53,7 +75,10 @@ class CheckpointsScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    StatusChip(label: cp.$2, color: cp.$3),
+                    StatusChip(
+                      label: cp.status,
+                      color: _statusColor(cp.status),
+                    ),
                   ],
                 ),
               ),
@@ -62,5 +87,13 @@ class CheckpointsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _statusColor(String status) {
+    return switch (status) {
+      'Completed' => AppColors.primary,
+      'Active' => AppColors.secondary,
+      _ => AppColors.mutedText,
+    };
   }
 }

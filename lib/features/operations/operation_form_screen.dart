@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_state.dart';
 import '../../shared/widgets/field_panel.dart';
 import '../../shared/widgets/field_scaffold.dart';
 import '../../shared/widgets/primary_action_button.dart';
@@ -15,6 +16,19 @@ class OperationFormScreen extends StatefulWidget {
 class _OperationFormScreenState extends State<OperationFormScreen> {
   String type = 'Safety Patrol';
   String priority = 'Standard';
+  final _designationController = TextEditingController();
+  final _sectorController = TextEditingController(
+    text: 'North Region / Sector 7',
+  );
+  final _notesController = TextEditingController();
+
+  @override
+  void dispose() {
+    _designationController.dispose();
+    _sectorController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +42,7 @@ class _OperationFormScreenState extends State<OperationFormScreen> {
             child: Column(
               children: [
                 TextField(
+                  controller: _designationController,
                   decoration: const InputDecoration(
                     labelText: 'Designation',
                     prefixIcon: Icon(Icons.edit_square),
@@ -70,6 +85,7 @@ class _OperationFormScreenState extends State<OperationFormScreen> {
                 ),
                 const SizedBox(height: 14),
                 TextField(
+                  controller: _sectorController,
                   decoration: const InputDecoration(
                     labelText: 'Sector / Region',
                     prefixIcon: Icon(Icons.map_outlined),
@@ -77,6 +93,7 @@ class _OperationFormScreenState extends State<OperationFormScreen> {
                 ),
                 const SizedBox(height: 14),
                 TextField(
+                  controller: _notesController,
                   maxLines: 4,
                   decoration: const InputDecoration(
                     labelText: 'Brief notes',
@@ -87,7 +104,16 @@ class _OperationFormScreenState extends State<OperationFormScreen> {
                 PrimaryActionButton(
                   label: 'Save draft',
                   icon: Icons.save_outlined,
-                  onPressed: () {},
+                  onPressed: () {
+                    FieldOpsStateScope.of(
+                      context,
+                    ).saveOperationDraft(_designationController.text.trim());
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Draft saved: $type / $priority')),
+                    );
+                    _designationController.clear();
+                    _notesController.clear();
+                  },
                 ),
               ],
             ),

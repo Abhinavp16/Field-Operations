@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('Field Operations app renders splash screen', (tester) async {
-    await tester.pumpWidget(const FieldOpsApp());
+    await tester.pumpWidget(FieldOpsApp());
 
     expect(find.text('Field Operations'), findsOneWidget);
     expect(

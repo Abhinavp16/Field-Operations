@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_state.dart';
 import '../../shared/widgets/field_panel.dart';
 import '../../shared/widgets/field_scaffold.dart';
 import '../../shared/widgets/primary_action_button.dart';
@@ -15,6 +16,15 @@ class IncidentReportScreen extends StatefulWidget {
 
 class _IncidentReportScreenState extends State<IncidentReportScreen> {
   String severity = 'Warning';
+  final _categoryController = TextEditingController(text: 'Coverage / Safety');
+  final _noteController = TextEditingController();
+
+  @override
+  void dispose() {
+    _categoryController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +60,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                 ),
                 const SizedBox(height: 14),
                 TextField(
+                  controller: _categoryController,
                   decoration: const InputDecoration(
                     labelText: 'Category',
                     prefixIcon: Icon(Icons.category_outlined),
@@ -57,6 +68,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                 ),
                 const SizedBox(height: 14),
                 TextField(
+                  controller: _noteController,
                   maxLines: 6,
                   decoration: const InputDecoration(
                     labelText: 'Situation note',
@@ -87,7 +99,15 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                 PrimaryActionButton(
                   label: 'Submit report',
                   icon: Icons.send_outlined,
-                  onPressed: () {},
+                  onPressed: () {
+                    FieldOpsStateScope.of(context).submitIncident(severity);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$severity report queued for sync'),
+                      ),
+                    );
+                    _noteController.clear();
+                  },
                 ),
               ],
             ),

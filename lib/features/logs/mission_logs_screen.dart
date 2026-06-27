@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_state.dart';
 import '../../shared/widgets/data_row_tile.dart';
 import '../../shared/widgets/field_panel.dart';
 import '../../shared/widgets/field_scaffold.dart';
@@ -12,6 +13,7 @@ class MissionLogsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = FieldOpsStateScope.of(context);
     return FieldScaffold(
       title: 'Logs & Debrief',
       subtitle: 'Searchable operation archive',
@@ -28,8 +30,10 @@ class MissionLogsScreen extends StatelessWidget {
           _LogCard(
             id: 'LOG-204',
             title: 'Bridge Safety Sweep',
-            status: 'Completed',
-            color: AppColors.primary,
+            status: state.operationStatus,
+            color: state.operationActive
+                ? AppColors.secondary
+                : AppColors.primary,
           ),
           _LogCard(
             id: 'LOG-198',
@@ -56,8 +60,43 @@ class MissionLogsScreen extends StatelessWidget {
                 const MockMap(height: 170, mode: 'Playback'),
                 const SizedBox(height: 10),
                 const DataRowTile(label: 'Duration', value: '04:12:09'),
-                const DataRowTile(label: 'Events captured', value: '38'),
-                const DataRowTile(label: 'Checkpoints crossed', value: '3 / 3'),
+                DataRowTile(
+                  label: 'Events captured',
+                  value: '${state.activities.length + state.offlineQueue}',
+                ),
+                DataRowTile(
+                  label: 'Checkpoints crossed',
+                  value:
+                      '${state.completedCheckpoints} / ${state.checkpoints.length}',
+                ),
+                DataRowTile(
+                  label: 'Reports submitted',
+                  value: '${state.incidentReports}',
+                  valueColor: AppColors.error,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          FieldPanel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AUDIT TRAIL',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+                const SizedBox(height: 10),
+                ...state.activities
+                    .take(6)
+                    .map(
+                      (activity) => DataRowTile(
+                        label: activity.title,
+                        value: activity.time,
+                        icon: Icons.history,
+                        valueColor: AppColors.primary,
+                      ),
+                    ),
               ],
             ),
           ),
