@@ -3,8 +3,18 @@ import 'package:flutter/material.dart';
 import '../../app/app_colors.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_header.dart';
+import '../../shared/widgets/data_row_tile.dart';
 import '../../shared/widgets/field_panel.dart';
+import '../../shared/widgets/mock_map.dart';
 import '../../shared/widgets/status_chip.dart';
+import '../checkpoints/checkpoints_screen.dart';
+import '../comms/comms_status_screen.dart';
+import '../incidents/incident_report_screen.dart';
+import '../logs/mission_logs_screen.dart';
+import '../operations/active_operation_screen.dart';
+import '../operations/operation_form_screen.dart';
+import '../personnel/personnel_screen.dart';
+import '../profile/profile_settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -22,9 +32,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const _DashboardHome(),
-      const _PlaceholderPage(title: 'Operations Map', icon: Icons.map_outlined),
-      const _PlaceholderPage(title: 'Reports', icon: Icons.assignment_outlined),
-      const _PlaceholderPage(title: 'Settings', icon: Icons.settings_outlined),
+      const ActiveOperationScreen(),
+      const PersonnelScreen(),
+      const MissionLogsScreen(),
+      const _MoreScreen(),
     ];
 
     return Scaffold(
@@ -35,9 +46,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               title: 'Field Operations',
               subtitle: 'North Region / Sector 7',
               trailing: IconButton(
-                onPressed: () {},
+                onPressed: () => setState(() => _tabIndex = 4),
                 icon: const Icon(
-                  Icons.signal_cellular_alt,
+                  Icons.settings_input_antenna,
                   color: AppColors.primary,
                 ),
               ),
@@ -49,22 +60,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (value) => setState(() => _tabIndex = value),
-        backgroundColor: AppColors.surface.withValues(alpha: 0.96),
+        backgroundColor: AppColors.surface.withValues(alpha: 0.98),
         indicatorColor: AppColors.primaryContainer,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.grid_view_outlined),
             label: 'Home',
           ),
-          NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Map'),
+          NavigationDestination(
+            icon: Icon(Icons.radar_outlined),
+            label: 'Live',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.groups_outlined),
+            label: 'Team',
+          ),
           NavigationDestination(
             icon: Icon(Icons.menu_book_outlined),
             label: 'Logs',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            label: 'Settings',
-          ),
+          NavigationDestination(icon: Icon(Icons.more_horiz), label: 'More'),
         ],
       ),
     );
@@ -77,13 +92,13 @@ class _DashboardHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
         const Row(
           children: [
             Expanded(
               child: _MetricCard(
-                label: 'Active operations',
+                label: 'Active ops',
                 value: '12',
                 icon: Icons.bolt_outlined,
               ),
@@ -91,7 +106,7 @@ class _DashboardHome extends StatelessWidget {
             SizedBox(width: 10),
             Expanded(
               child: _MetricCard(
-                label: 'Field personnel',
+                label: 'Personnel',
                 value: '86',
                 icon: Icons.groups_outlined,
               ),
@@ -103,7 +118,7 @@ class _DashboardHome extends StatelessWidget {
           children: [
             Expanded(
               child: _MetricCard(
-                label: 'Safety alerts',
+                label: 'Alerts',
                 value: '2',
                 icon: Icons.warning_amber_rounded,
                 color: AppColors.error,
@@ -112,14 +127,14 @@ class _DashboardHome extends StatelessWidget {
             SizedBox(width: 10),
             Expanded(
               child: _MetricCard(
-                label: 'Network health',
+                label: 'Network',
                 value: '98%',
                 icon: Icons.router_outlined,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         FieldPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,51 +142,55 @@ class _DashboardHome extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'OPERATION OVERVIEW',
+                    'FIELD OVERLAY',
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                   const Spacer(),
                   const StatusChip(label: 'Live'),
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                height: 190,
-                decoration: BoxDecoration(
-                  color: AppColors.mapBase,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.outline),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: CustomPaint(painter: _MiniMapPainter()),
-                    ),
-                    const Positioned(
-                      left: 28,
-                      top: 42,
-                      child: _MapPoint(
-                        label: 'OPS-12',
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const Positioned(
-                      right: 48,
-                      bottom: 42,
-                      child: _MapPoint(label: 'ALERT', color: AppColors.error),
-                    ),
-                    const Positioned(
-                      right: 12,
-                      top: 12,
-                      child: StatusChip(label: 'Map mock', showDot: false),
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 14),
+              const MockMap(height: 220, mode: 'Sector 7'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        FieldPanel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ACTIVE SUMMARY',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              const SizedBox(height: 8),
+              const DataRowTile(
+                label: 'Current operation',
+                value: 'Bridge Safety Sweep',
+                icon: Icons.assignment_outlined,
+              ),
+              const DataRowTile(
+                label: 'Team online',
+                value: '8 / 9',
+                icon: Icons.group_outlined,
+                valueColor: AppColors.primary,
+              ),
+              const DataRowTile(
+                label: 'Pending sync',
+                value: '4 records',
+                icon: Icons.sync_outlined,
+                valueColor: AppColors.secondary,
+              ),
+              const DataRowTile(
+                label: 'Coverage blackspots',
+                value: '2',
+                icon: Icons.signal_cellular_connected_no_internet_4_bar,
+                valueColor: AppColors.error,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         FieldPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,6 +223,75 @@ class _DashboardHome extends StatelessWidget {
   }
 }
 
+class _MoreScreen extends StatelessWidget {
+  const _MoreScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final modules = [
+      _Module(
+        'Create Operation',
+        Icons.add_circle_outline,
+        const OperationFormScreen(),
+      ),
+      _Module('Checkpoints', Icons.flag_outlined, const CheckpointsScreen()),
+      _Module(
+        'Incident Report',
+        Icons.report_outlined,
+        const IncidentReportScreen(),
+      ),
+      _Module(
+        'Coverage Monitor',
+        Icons.settings_input_antenna,
+        const CommsStatusScreen(),
+      ),
+      _Module(
+        'Profile & Security',
+        Icons.verified_user_outlined,
+        const ProfileSettingsScreen(),
+      ),
+    ];
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      itemBuilder: (context, index) {
+        final module = modules[index];
+        return FieldPanel(
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(module.icon, color: AppColors.primary),
+            title: Text(
+              module.title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            subtitle: Text(
+              'Open ${module.title.toLowerCase()} module',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            trailing: const Icon(
+              Icons.chevron_right,
+              color: AppColors.mutedText,
+            ),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => module.screen)),
+          ),
+        );
+      },
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemCount: modules.length,
+    );
+  }
+}
+
+class _Module {
+  const _Module(this.title, this.icon, this.screen);
+
+  final String title;
+  final IconData icon;
+  final Widget screen;
+}
+
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
     required this.label,
@@ -225,9 +313,8 @@ class _MetricCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 22),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Text(value, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 2),
           Text(
             label.toUpperCase(),
             style: Theme.of(context).textTheme.labelSmall,
@@ -259,116 +346,13 @@ class _ActivityRow extends StatelessWidget {
             time,
             style: const TextStyle(
               color: AppColors.primary,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(width: 14),
           Expanded(child: Text(title)),
           Text(status, style: Theme.of(context).textTheme.bodySmall),
         ],
-      ),
-    );
-  }
-}
-
-class _MapPoint extends StatelessWidget {
-  const _MapPoint({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.7),
-                blurRadius: 18,
-                spreadRadius: 4,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MiniMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final gridPaint = Paint()
-      ..color = AppColors.outline.withValues(alpha: 0.25)
-      ..strokeWidth = 0.8;
-    for (double x = 0; x < size.width; x += 28) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-    for (double y = 0; y < size.height; y += 28) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    final routePaint = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.65)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    final path = Path()
-      ..moveTo(32, 58)
-      ..quadraticBezierTo(
-        size.width * 0.45,
-        24,
-        size.width - 58,
-        size.height - 50,
-      );
-    canvas.drawPath(path, routePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.title, required this.icon});
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: FieldPanel(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: AppColors.primary, size: 42),
-              const SizedBox(height: 14),
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Text(
-                'This module will be expanded in the next UI step.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
