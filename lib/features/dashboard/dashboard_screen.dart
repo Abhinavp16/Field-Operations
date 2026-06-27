@@ -94,6 +94,8 @@ class _DashboardHome extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
+        const _AlertBanner(),
+        const SizedBox(height: 14),
         const Row(
           children: [
             Expanded(
@@ -135,6 +137,8 @@ class _DashboardHome extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
+        const _QuickActionGrid(),
+        const SizedBox(height: 14),
         FieldPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +146,7 @@ class _DashboardHome extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'FIELD OVERLAY',
+                    'GIS FIELD OVERLAY',
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                   const Spacer(),
@@ -150,7 +154,7 @@ class _DashboardHome extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
-              const MockMap(height: 220, mode: 'Sector 7'),
+              const MockMap(height: 250, mode: 'Sector 7'),
             ],
           ),
         ),
@@ -187,6 +191,11 @@ class _DashboardHome extends StatelessWidget {
                 icon: Icons.signal_cellular_connected_no_internet_4_bar,
                 valueColor: AppColors.error,
               ),
+              const DataRowTile(
+                label: 'Last debrief generated',
+                value: '17 min ago',
+                icon: Icons.description_outlined,
+              ),
             ],
           ),
         ),
@@ -214,6 +223,11 @@ class _DashboardHome extends StatelessWidget {
                 time: '08:52',
                 title: 'Team Bravo joined operation',
                 status: 'Active',
+              ),
+              const _ActivityRow(
+                time: '08:31',
+                title: 'Offline map pack verified',
+                status: 'Ready',
               ),
             ],
           ),
@@ -257,24 +271,49 @@ class _MoreScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         final module = modules[index];
         return FieldPanel(
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(module.icon, color: AppColors.primary),
-            title: Text(
-              module.title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            subtitle: Text(
-              'Open ${module.title.toLowerCase()} module',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            trailing: const Icon(
-              Icons.chevron_right,
-              color: AppColors.mutedText,
-            ),
+          padding: EdgeInsets.zero,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
             onTap: () => Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => module.screen)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryContainer.withValues(alpha: .35),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: .35),
+                      ),
+                    ),
+                    child: Icon(module.icon, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          module.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Open ${module.title.toLowerCase()} module',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: AppColors.mutedText),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -282,6 +321,130 @@ class _MoreScreen extends StatelessWidget {
       itemCount: modules.length,
     );
   }
+}
+
+class _AlertBanner extends StatelessWidget {
+  const _AlertBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return FieldPanel(
+      borderColor: AppColors.error.withValues(alpha: .55),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.errorContainer.withValues(alpha: .38),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.error,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CRITICAL WATCH',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+                const SizedBox(height: 2),
+                const Text('Sector 7 coverage degraded near Ridge Line B'),
+              ],
+            ),
+          ),
+          const StatusChip(label: '2 alerts', color: AppColors.error),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionGrid extends StatelessWidget {
+  const _QuickActionGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = [
+      _QuickAction(
+        'New Op',
+        Icons.add_circle_outline,
+        const OperationFormScreen(),
+      ),
+      _QuickAction(
+        'Report',
+        Icons.report_outlined,
+        const IncidentReportScreen(),
+      ),
+      _QuickAction(
+        'Checkpoints',
+        Icons.flag_outlined,
+        const CheckpointsScreen(),
+      ),
+      _QuickAction(
+        'Coverage',
+        Icons.settings_input_antenna,
+        const CommsStatusScreen(),
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: actions.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: .86,
+      ),
+      itemBuilder: (context, index) {
+        final action = actions[index];
+        return FieldPanel(
+          padding: EdgeInsets.zero,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => action.screen)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(action.icon, color: AppColors.primary, size: 24),
+                  const SizedBox(height: 8),
+                  Text(
+                    action.label.toUpperCase(),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      fontSize: 10,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _QuickAction {
+  const _QuickAction(this.label, this.icon, this.screen);
+
+  final String label;
+  final IconData icon;
+  final Widget screen;
 }
 
 class _Module {

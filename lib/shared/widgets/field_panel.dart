@@ -42,7 +42,7 @@ class FieldPanel extends StatelessWidget {
           child: Container(
             padding: padding,
             color: AppColors.surface.withValues(alpha: 0.72),
-            child: child,
+            child: Material(type: MaterialType.transparency, child: child),
           ),
         ),
       ),
