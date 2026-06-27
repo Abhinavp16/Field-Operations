@@ -1,9 +1,10 @@
+import 'package:field_operations/app/app_state.dart';
 import 'package:field_operations/app/field_ops_app.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('Field Operations app renders splash screen', (tester) async {
-    await tester.pumpWidget(FieldOpsApp());
+    await tester.pumpWidget(FieldOpsApp(state: FieldOpsState()));
 
     expect(find.text('Field Operations'), findsOneWidget);
     expect(

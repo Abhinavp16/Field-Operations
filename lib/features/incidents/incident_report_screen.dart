@@ -100,6 +100,16 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   label: 'Submit report',
                   icon: Icons.send_outlined,
                   onPressed: () {
+                    if (_noteController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Add a situation note before submitting',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     FieldOpsStateScope.of(context).submitIncident(severity);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckpointRecord {
   const CheckpointRecord({required this.name, required this.status});
@@ -8,6 +11,15 @@ class CheckpointRecord {
 
   CheckpointRecord copyWith({String? status}) {
     return CheckpointRecord(name: name, status: status ?? this.status);
+  }
+
+  Map<String, Object?> toJson() => {'name': name, 'status': status};
+
+  factory CheckpointRecord.fromJson(Map<String, Object?> json) {
+    return CheckpointRecord(
+      name: json['name'] as String? ?? 'Checkpoint',
+      status: json['status'] as String? ?? 'Pending',
+    );
   }
 }
 
@@ -21,9 +33,29 @@ class ActivityRecord {
   final String time;
   final String title;
   final String status;
+
+  Map<String, Object?> toJson() => {
+    'time': time,
+    'title': title,
+    'status': status,
+  };
+
+  factory ActivityRecord.fromJson(Map<String, Object?> json) {
+    return ActivityRecord(
+      time: json['time'] as String? ?? '--:--',
+      title: json['title'] as String? ?? 'Activity',
+      status: json['status'] as String? ?? 'Logged',
+    );
+  }
 }
 
 class FieldOpsState extends ChangeNotifier {
+  FieldOpsState({this.preferences});
+
+  static const _storageKey = 'field_ops_state_v1';
+
+  final SharedPreferences? preferences;
+
   bool operationActive = true;
   int operationDrafts = 0;
   int incidentReports = 2;
@@ -62,6 +94,42 @@ class FieldOpsState extends ChangeNotifier {
       checkpoints.where((item) => item.status == 'Completed').length;
   int get alertCount => incidentReports;
   String get operationStatus => operationActive ? 'Active' : 'Closed';
+
+  Future<void> restore() async {
+    final raw = preferences?.getString(_storageKey);
+    if (raw == null || raw.isEmpty) return;
+
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map<String, dynamic>) return;
+
+    operationActive = decoded['operationActive'] as bool? ?? operationActive;
+    operationDrafts = decoded['operationDrafts'] as int? ?? operationDrafts;
+    incidentReports = decoded['incidentReports'] as int? ?? incidentReports;
+    offlineQueue = decoded['offlineQueue'] as int? ?? offlineQueue;
+
+    final checkpointData = decoded['checkpoints'];
+    if (checkpointData is List) {
+      checkpoints
+        ..clear()
+        ..addAll(
+          checkpointData.whereType<Map>().map(
+            (item) =>
+                CheckpointRecord.fromJson(Map<String, Object?>.from(item)),
+          ),
+        );
+    }
+
+    final activityData = decoded['activities'];
+    if (activityData is List) {
+      activities
+        ..clear()
+        ..addAll(
+          activityData.whereType<Map>().map(
+            (item) => ActivityRecord.fromJson(Map<String, Object?>.from(item)),
+          ),
+        );
+    }
+  }
 
   void saveOperationDraft(String name) {
     operationDrafts += 1;
@@ -111,6 +179,21 @@ class FieldOpsState extends ChangeNotifier {
       ActivityRecord(time: _timeNow(), title: title, status: status),
     );
     notifyListeners();
+    _persist();
+  }
+
+  Future<void> _persist() async {
+    await preferences?.setString(
+      _storageKey,
+      jsonEncode({
+        'operationActive': operationActive,
+        'operationDrafts': operationDrafts,
+        'incidentReports': incidentReports,
+        'offlineQueue': offlineQueue,
+        'checkpoints': checkpoints.map((item) => item.toJson()).toList(),
+        'activities': activities.take(30).map((item) => item.toJson()).toList(),
+      }),
+    );
   }
 
   String _timeNow() {

@@ -8,14 +8,14 @@ import 'app_state.dart';
 import 'app_theme.dart';
 
 class FieldOpsApp extends StatelessWidget {
-  FieldOpsApp({super.key});
+  const FieldOpsApp({required this.state, super.key});
 
-  final FieldOpsState _state = FieldOpsState();
+  final FieldOpsState state;
 
   @override
   Widget build(BuildContext context) {
     return FieldOpsStateScope(
-      state: _state,
+      state: state,
       child: MaterialApp(
         title: 'Field Operations',
         debugShowCheckedModeBanner: false,

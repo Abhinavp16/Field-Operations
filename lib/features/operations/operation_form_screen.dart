@@ -105,11 +105,20 @@ class _OperationFormScreenState extends State<OperationFormScreen> {
                   label: 'Save draft',
                   icon: Icons.save_outlined,
                   onPressed: () {
+                    final designation = _designationController.text.trim();
+                    if (designation.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Enter an operation designation first'),
+                        ),
+                      );
+                      return;
+                    }
                     FieldOpsStateScope.of(
                       context,
-                    ).saveOperationDraft(_designationController.text.trim());
+                    ).saveOperationDraft(designation);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Draft saved: $type / $priority')),
+                      SnackBar(content: Text('Draft saved: $designation')),
                     );
                     _designationController.clear();
                     _notesController.clear();
