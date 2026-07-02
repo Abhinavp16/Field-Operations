@@ -6,7 +6,9 @@ import '../../shared/widgets/field_scaffold.dart';
 import '../../shared/widgets/status_chip.dart';
 
 class PersonnelScreen extends StatelessWidget {
-  const PersonnelScreen({super.key});
+  const PersonnelScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +21,7 @@ class PersonnelScreen extends StatelessWidget {
     return FieldScaffold(
       title: 'Personnel',
       subtitle: 'Field team tracking',
+      embedded: embedded,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         itemCount: people.length,

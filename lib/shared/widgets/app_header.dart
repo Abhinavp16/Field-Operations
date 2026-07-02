@@ -7,11 +7,13 @@ class AppHeader extends StatelessWidget {
     required this.title,
     super.key,
     this.subtitle,
+    this.showBack = false,
     this.trailing,
   });
 
   final String title;
   final String? subtitle;
+  final bool showBack;
   final Widget? trailing;
 
   @override
@@ -22,7 +24,29 @@ class AppHeader extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
         child: Row(
           children: [
-            const Icon(Icons.shield_outlined, color: AppColors.primary),
+            if (showBack)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+              )
+            else
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer.withValues(alpha: .28),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: .22),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.shield_outlined,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

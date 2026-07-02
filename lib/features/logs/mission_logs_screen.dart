@@ -9,7 +9,9 @@ import '../../shared/widgets/mock_map.dart';
 import '../../shared/widgets/status_chip.dart';
 
 class MissionLogsScreen extends StatelessWidget {
-  const MissionLogsScreen({super.key});
+  const MissionLogsScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +19,7 @@ class MissionLogsScreen extends StatelessWidget {
     return FieldScaffold(
       title: 'Logs & Debrief',
       subtitle: 'Searchable operation archive',
+      embedded: embedded,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [

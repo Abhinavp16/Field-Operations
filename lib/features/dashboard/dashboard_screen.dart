@@ -33,9 +33,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const _DashboardHome(),
-      const ActiveOperationScreen(),
-      const PersonnelScreen(),
-      const MissionLogsScreen(),
+      const ActiveOperationScreen(embedded: true),
+      const PersonnelScreen(embedded: true),
+      const MissionLogsScreen(embedded: true),
       const _MoreScreen(),
     ];
 
@@ -44,12 +44,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           children: [
             AppHeader(
-              title: 'Field Operations',
-              subtitle: 'North Region / Sector 7',
+              title: _titleForTab(_tabIndex),
+              subtitle: _subtitleForTab(_tabIndex),
               trailing: IconButton(
-                onPressed: () => setState(() => _tabIndex = 4),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileSettingsScreen(),
+                  ),
+                ),
                 icon: const Icon(
-                  Icons.settings_input_antenna,
+                  Icons.account_circle_outlined,
                   color: AppColors.primary,
                 ),
               ),
@@ -85,6 +89,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+  String _titleForTab(int index) {
+    return switch (index) {
+      1 => 'Live Operation',
+      2 => 'Personnel',
+      3 => 'Logs & Debrief',
+      4 => 'Field Modules',
+      _ => 'Field Operations',
+    };
+  }
+
+  String _subtitleForTab(int index) {
+    return switch (index) {
+      1 => 'OPS-204 / Sector 7',
+      2 => 'Field team tracking',
+      3 => 'Searchable operation archive',
+      4 => 'Connected workflows',
+      _ => 'North Region / Sector 7',
+    };
+  }
 }
 
 class _DashboardHome extends StatelessWidget {
@@ -96,7 +120,12 @@ class _DashboardHome extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        _AlertBanner(alertCount: state.alertCount),
+        _AlertBanner(
+          alertCount: state.alertCount,
+          onTap: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const CommsStatusScreen())),
+        ),
         const SizedBox(height: 14),
         Row(
           children: [
@@ -142,22 +171,32 @@ class _DashboardHome extends StatelessWidget {
         const _QuickActionGrid(),
         const SizedBox(height: 14),
         FieldPanel(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+          padding: EdgeInsets.zero,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ActiveOperationScreen()),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'GIS FIELD OVERLAY',
-                    style: Theme.of(context).textTheme.labelSmall,
+                  Row(
+                    children: [
+                      Text(
+                        'GIS FIELD OVERLAY',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      const Spacer(),
+                      const StatusChip(label: 'Live'),
+                    ],
                   ),
-                  const Spacer(),
-                  const StatusChip(label: 'Live'),
+                  const SizedBox(height: 14),
+                  const MockMap(height: 250, mode: 'Sector 7'),
                 ],
               ),
-              const SizedBox(height: 14),
-              const MockMap(height: 250, mode: 'Sector 7'),
-            ],
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -248,6 +287,17 @@ class _MoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final modules = [
       _Module(
+        'Live Operation',
+        Icons.radar_outlined,
+        const ActiveOperationScreen(),
+      ),
+      _Module('Personnel', Icons.groups_outlined, const PersonnelScreen()),
+      _Module(
+        'Logs & Debrief',
+        Icons.menu_book_outlined,
+        const MissionLogsScreen(),
+      ),
+      _Module(
         'Create Operation',
         Icons.add_circle_outline,
         const OperationFormScreen(),
@@ -328,44 +378,53 @@ class _MoreScreen extends StatelessWidget {
 }
 
 class _AlertBanner extends StatelessWidget {
-  const _AlertBanner({required this.alertCount});
+  const _AlertBanner({required this.alertCount, required this.onTap});
 
   final int alertCount;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return FieldPanel(
+      padding: EdgeInsets.zero,
       borderColor: AppColors.error.withValues(alpha: .55),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.errorContainer.withValues(alpha: .38),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.warning_amber_rounded,
-              color: AppColors.error,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CRITICAL WATCH',
-                  style: Theme.of(context).textTheme.labelSmall,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.errorContainer.withValues(alpha: .38),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 2),
-                const Text('Sector 7 coverage degraded near Ridge Line B'),
-              ],
-            ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: AppColors.error,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'CRITICAL WATCH',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                    const SizedBox(height: 2),
+                    const Text('Sector 7 coverage degraded near Ridge Line B'),
+                  ],
+                ),
+              ),
+              StatusChip(label: '$alertCount alerts', color: AppColors.error),
+            ],
           ),
-          StatusChip(label: '$alertCount alerts', color: AppColors.error),
-        ],
+        ),
       ),
     );
   }

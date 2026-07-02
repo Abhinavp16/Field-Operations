@@ -9,19 +9,30 @@ class FieldScaffold extends StatelessWidget {
     required this.child,
     super.key,
     this.subtitle,
+    this.embedded = false,
+    this.trailing,
   });
 
   final String title;
   final String? subtitle;
   final Widget child;
+  final bool embedded;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
+    if (embedded) return child;
+
     return Scaffold(
       body: AppBackground(
         child: Column(
           children: [
-            AppHeader(title: title, subtitle: subtitle),
+            AppHeader(
+              title: title,
+              subtitle: subtitle,
+              showBack: Navigator.of(context).canPop(),
+              trailing: trailing,
+            ),
             Expanded(child: child),
           ],
         ),

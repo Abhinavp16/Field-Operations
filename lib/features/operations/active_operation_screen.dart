@@ -11,7 +11,9 @@ import '../checkpoints/checkpoints_screen.dart';
 import '../incidents/incident_report_screen.dart';
 
 class ActiveOperationScreen extends StatelessWidget {
-  const ActiveOperationScreen({super.key});
+  const ActiveOperationScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +21,7 @@ class ActiveOperationScreen extends StatelessWidget {
     return FieldScaffold(
       title: 'Active Operation',
       subtitle: 'OPS-204 / Sector 7',
+      embedded: embedded,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
